@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="glass-card mx-auto" style="max-width: 1100px;">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="brand-badge" style="width:36px;height:36px;">
+        <i class="fa-solid fa-sliders"></i>
+      </div>
+      <h4 class="m-0">Account Settings</h4>
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('index') }}">
+      <i class="fa-solid fa-arrow-left-long me-1"></i> Back
+    </a>
+  </div>
+
+  <form method="post" class="row g-4">
+    <!-- BASIC -->
+    <div class="col-md-6">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="name" value="{{ account.name or '' }}" required placeholder="e.g., Pracandy Carousel A">
+      <div class="form-text">Visible label in the dashboard.</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Type</label>
+      <select class="form-select" name="type" id="typeSel" required>
+        <option value="carousel" {% if account.type=='carousel' %}selected{% endif %}>Carousel</option>
+        <option value="reel"     {% if account.type=='reel'     %}selected{% endif %}>Reel</option>
+      </select>
+      <div class="form-text">Choose what this account will post.</div>
+    </div>
+
+    <!-- AUTH -->
+    <div class="col-md-6">
+      <label class="form-label">Access Token ENV</label>
+      <input class="form-control" name="access_token_env" value="{{ account.access_token_env or '' }}" required placeholder="ENV var name, e.g., PRACANDY_A_TOKEN">
+      <div class="form-text">Name of the environment variable that stores the long-lived IG token.</div>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">IG User ID ENV</label>
+      <input class="form-control" name="ig_user_id_env" value="{{ account.ig_user_id_env or '' }}" required placeholder="ENV var name, e.g., PRACANDY_A_IG_ID">
+      <div class="form-text">Name of the environment variable that stores the Instagram user ID.</div>
+    </div>
+
+    <!-- CAROUSEL ONLY -->
+    <div class="col-md-7 carousel-only">
+      <label class="form-label">Base Image URL</label>
+      <input class="form-control" name="base_url" value="{{ account.base_url or '' }}" placeholder="https://example.com/images">
+      <div class="form-text">We’ll fetch images like <code>img (1).jpg</code>, <code>img (2).jpg</code>… from this base URL.</div>
+    </div>
+    <div class="col-md-5 carousel-only">
+      <label class="form-label">Slides per Post</label>
+      <input type="number" min="1" class="form-control" name="slides_per_post" value="{{ account.slides_per_post or 3 }}">
+      <div class="form-text">How many slides to publish by default (you can override in Preview).</div>
+    </div>
+
+    <!-- REEL ONLY -->
+    <div class="col-md-7 reel-only">
+      <label class="form-label">Video Base URL</label>
+      <input class="form-control" name="video_base_url" value="{{ account.video_base_url or '' }}" placeholder="https://example.com/videos">
+      <div class="form-text">We’ll pick videos like <code>vid.mp4</code>, <code>vid (1).mp4</code>… from this base URL.</div>
+    </div>
+
+    <!-- SHARED -->
+    <div class="col-md-7">
+      <label class="form-label">Caption URL</label>
+      <input class="form-control" name="caption_url" value="{{ account.caption_url or '' }}" required placeholder="https://example.com/captions.txt">
+      <div class="form-text">Public plaintext file: one caption per line.</div>
+    </div>
+    <div class="col-md-5">
+      <label class="form-label">State Prefix</label>
+      <input class="form-control" name="state_prefix" value="{{ account.state_prefix or '' }}" required placeholder="e.g., pracandy_a">
+      <div class="form-text">Used for local state files like <code>{{'{'}}prefix{{'}'}}_image.json</code>.</div>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-success">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Save Account
+      </button>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Toggle fields based on Type
+  function toggleType() {
+    const val = document.getElementById('typeSel').value;
+    document.querySelectorAll('.carousel-only').forEach(el => el.style.display = (val === 'carousel' ? '' : 'none'));
+    document.querySelectorAll('.reel-only').forEach(el => el.style.display = (val === 'reel' ? '' : 'none'));
+  }
+  document.getElementById('typeSel').addEventListener('change', toggleType);
+  toggleType();
+</script>
+
+{% endblock %}

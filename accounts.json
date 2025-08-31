@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Example Instagram Reels",
+    "type": "reel",
+    "access_token_env": "YOUR_REEL_ACCESS_TOKEN_ENV",
+    "ig_user_id_env": "YOUR_REEL_IG_ID_ENV",
+    "video_base_url": "https://example.com/videos",
+    "video_dir": "./videos",
+    "caption_url": "https://example.com/captions.txt",
+    "state_prefix": "example_reel"
+  },
+    {
+    "name": "Example Instagram Reels",
+    "type": "reel",
+    "access_token_env": "YOUR_REEL_ACCESS_TOKEN_ENV",
+    "ig_user_id_env": "YOUR_REEL_IG_ID_ENV",
+    "video_base_url": "https://example.com/videos",
+    "video_dir": "./videos",
+    "caption_url": "https://example.com/captions.txt",
+    "state_prefix": "example_reel"
+  }
+]

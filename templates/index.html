@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Instagram Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <!-- Sortable -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+
+  <style>
+    :root{
+      --bg1:#0e0e12;
+      --bg2:#161623;
+      --glass:rgba(255,255,255,0.08);
+      --stroke:rgba(255,255,255,0.15);
+      --text:#e7e7ee;
+      --muted:#a9adc2;
+      --gradA:#7c5cff; /* violet */
+      --gradB:#22d3ee; /* cyan */
+      --gradC:#34d399; /* emerald */
+      --accent:#ffd166; /* amber */
+      --danger:#ff6b6b;
+      --success:#22c55e;
+      --shadow:0 20px 40px rgba(0,0,0,0.45);
+    }
+
+    /* Background */
+    html, body { height:100%; }
+    body{
+      margin:0;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% -10%, rgba(124,92,255,0.15), transparent 60%),
+        radial-gradient(1200px 800px at 110% 10%, rgba(34,211,238,0.12), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    /* Nav */
+    .app-nav{
+      background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border-bottom:1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Dashboard layout */
+    .dashboard{
+      min-height: calc(100vh - 72px);
+      display:grid;
+      gap:2rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      padding: clamp(16px, 5vw, 56px);
+      align-content:start;
+    }
+
+    /* Account Card */
+    .account{
+      position:relative;
+      border:1px solid var(--stroke);
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border-radius:22px;
+      padding:22px 22px 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      transform-style: preserve-3d;
+      transition: transform .35s ease, box-shadow .35s ease, border-color .35s ease;
+    }
+    .account:hover{
+      transform: translateY(-6px) rotateX(2deg) rotateY(1deg);
+      box-shadow: 0 25px 60px rgba(124,92,255,0.25);
+      border-color: rgba(124,92,255,0.35);
+    }
+
+    /* Floating gradient blur */
+    .account::before{
+      content:"";
+      position:absolute; inset:auto -30% -45% -30%;
+      height:55%;
+      background: radial-gradient(closest-side, rgba(124,92,255,0.35), rgba(34,211,238,0.25), transparent 70%);
+      filter: blur(45px);
+      z-index:0;
+      transform: translateZ(-1px);
+    }
+
+    .account-head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;
+    }
+
+    .badge-type{
+      font-size:.75rem;
+      border:1px solid var(--stroke);
+      color:var(--muted);
+      background: rgba(255,255,255,0.05);
+      padding: .35rem .6rem;
+      border-radius: 999px;
+    }
+
+    .edit-btn{
+      border:none; background:transparent; color:var(--muted);
+      border-radius:10px; padding:.35rem .5rem;
+    }
+    .edit-btn:hover{ color:var(--text); background:rgba(255,255,255,0.07); }
+
+    .account-name{
+      font-weight:700; letter-spacing:.2px; margin:0 0 6px;
+    }
+    .status-line{
+      font-size:.9rem; color:var(--muted);
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:50%;
+      background:var(--muted);
+      box-shadow:0 0 0 0 rgba(255,255,255,0.0);
+      transition: background .25s ease, box-shadow .25s ease;
+    }
+    .dot.running{
+      background:var(--accent);
+      animation: dotPulse 1.5s infinite;
+    }
+    .dot.success{ background:var(--success); }
+    .dot.error{ background:var(--danger); }
+    @keyframes dotPulse {
+      0% { box-shadow:0 0 0 0 rgba(255,209,102,0.6); }
+      70%{ box-shadow:0 0 0 10px rgba(255,209,102,0); }
+      100%{ box-shadow:0 0 0 0 rgba(255,209,102,0); }
+    }
+
+    /* Play button (neon gradient) */
+    .circle-wrap{
+      position:relative; display:flex; justify-content:center; margin:16px 0 14px;
+    }
+    .circle-btn{
+      position:relative;
+      width:132px; height:132px; border-radius:50%;
+      display:grid; place-items:center;
+      color:#fff;
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.15);
+      background:
+        radial-gradient(120% 120% at 10% 110%, rgba(52,211,153,0.25), transparent 60%),
+        linear-gradient(135deg, rgba(124,92,255,0.25), rgba(34,211,238,0.25));
+      box-shadow: inset 0 0 40px rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.35);
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+      overflow:hidden;
+    }
+    .circle-btn:hover{
+      transform: scale(1.05);
+      box-shadow: inset 0 0 50px rgba(255,255,255,0.06), 0 16px 38px rgba(124,92,255,0.35);
+      filter: saturate(1.2);
+    }
+    .circle-btn i{ font-size:2.2rem; z-index:2; }
+
+    /* Ripple on click */
+    .circle-btn .ripple{
+      position:absolute; border-radius:50%; transform:scale(0); opacity:.65;
+      background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0.1) 60%, transparent 70%);
+      pointer-events:none;
+      animation: ripple .6s ease-out forwards;
+    }
+    @keyframes ripple{
+      to{ transform:scale(5); opacity:0; }
+    }
+
+    /* Loading ring */
+    .circle-btn.loading::after{
+      content:"";
+      position:absolute; inset:-6px;
+      border-radius:50%;
+      border: 4px solid rgba(255,255,255,0.25);
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to{ transform: rotate(360deg); } }
+
+    /* Secondary actions */
+    .actions{
+      display:flex; gap:.6rem; justify-content:center;
+    }
+    .btn-ghost{
+      --alpha: .14;
+      border:1px solid var(--stroke);
+      color:var(--text);
+      background: linear-gradient(180deg, rgba(255,255,255,var(--alpha)), rgba(255,255,255,calc(var(--alpha) - .06)));
+      backdrop-filter: blur(6px);
+      border-radius:12px;
+      padding:.45rem .8rem;
+    }
+    .btn-ghost:hover{
+      border-color: rgba(124,92,255,0.4);
+      color:#fff;
+      box-shadow: 0 10px 24px rgba(124,92,255,0.25);
+    }
+
+    /* Modal restyle */
+    .modal-content{
+      background: linear-gradient(180deg, rgba(20,20,28,0.92), rgba(14,14,18,0.92));
+      color:var(--text);
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+    }
+    .modal-header{
+      border-bottom:1px solid var(--stroke);
+      background: linear-gradient(90deg, rgba(124,92,255,0.12), rgba(34,211,238,0.08) 60%, transparent);
+    }
+    .form-control, .form-check-input{
+      background: rgba(255,255,255,0.06) !important;
+      border:1px solid var(--stroke) !important;
+      color:var(--text) !important;
+    }
+    .form-control::placeholder{ color:#9aa0b6; }
+
+    /* Preview cards */
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      border:1px solid var(--stroke);
+      color:var(--text);
+      border-radius:16px;
+    }
+
+    /* Skeleton loaders for preview grid */
+    .skeleton{
+      position:relative; overflow:hidden; background: rgba(255,255,255,0.06);
+      border-radius:12px; height:180px;
+    }
+    .skeleton::after{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transform: translateX(-100%);
+      animation: shimmer 1.3s infinite;
+    }
+    @keyframes shimmer{ to{ transform: translateX(100%);} }
+
+    /* Toast */
+    .toast-container{ z-index: 1080; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg app-nav">
+    <div class="container-fluid py-2">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:38px;height:38px;background:linear-gradient(135deg,var(--gradA),var(--gradB)); box-shadow:0 8px 22px rgba(124,92,255,0.35);">
+          <i class="fa-brands fa-instagram text-white"></i>
+        </div>
+        <a class="navbar-brand fw-bold text-white-50" href="/">Insta UI</a>
+      </div>
+      <div class="ms-auto">
+        <a class="btn btn-sm btn-outline-light rounded-3" href="{{ url_for('account_form') }}">
+          <i class="fa-solid fa-plus me-1"></i> Add Account
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- DASHBOARD GRID -->
+  <main class="dashboard container-fluid">
+    {% for acct in accounts %}
+    <section class="account" data-idx="{{ loop.index0 }}" data-type="{{ acct.type }}">
+      <div class="account-head">
+        <span class="badge-type text-uppercase">{{ acct.type }}</span>
+        <button class="edit-btn" title="Edit" onclick="location.href='{{ url_for('account_form', idx=loop.index0) }}'">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+      </div>
+
+      <h5 class="account-name">{{ acct.name }}</h5>
+      <div class="status-line">
+        <span class="dot" id="dot-{{ loop.index0 }}"></span>
+        <span id="status-{{ loop.index0 }}">idle</span>
+      </div>
+
+      <div class="circle-wrap">
+        <button class="circle-btn" title="Auto post (no manual selection)">
+          <i class="fas fa-play"></i>
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost preview-btn">
+          <i class="fa-regular fa-eye me-1"></i> Preview & Select
+        </button>
+      </div>
+    </section>
+    {% endfor %}
+  </main>
+
+  <!-- PREVIEW MODAL -->
+  <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-regular fa-eye me-2"></i> Preview & Select</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="previewAlert" class="alert d-none"></div>
+
+          <div class="mb-3">
+            <label class="form-label">Caption (edit before publish)</label>
+            <textarea id="previewCaption" class="form-control" rows="3" placeholder="Your caption..."></textarea>
+          </div>
+
+          <div id="imageSection" class="d-none">
+            <p class="text-muted mb-2">Drag to reorder. Check to include.</p>
+            <div id="imageGrid" class="row g-3"></div>
+          </div>
+
+          <div id="videoSection" class="d-none">
+            <p class="text-muted mb-2">Pick one video to post as a Reel.</p>
+            <div id="videoGrid" class="row g-3"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="publishBtn" class="btn btn-primary" disabled>
+            <span class="me-2"><i class="fa-solid fa-rocket"></i></span> Publish
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="actionToast" class="toast text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-body">
+        <div class="d-flex">
+          <div class="me-2"><i id="toastIcon" class="fa-regular fa-circle-check text-success"></i></div>
+          <div>
+            <div id="toastMsg">Done!</div>
+            <div id="toastLink" class="small text-secondary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utilities
+    const qs = (s, el=document)=>el.querySelector(s);
+    const qsa = (s, el=document)=>Array.from(el.querySelectorAll(s));
+
+    // Ripple effect for circle buttons
+    function addRipple(e) {
+      const btn = e.currentTarget;
+      const r = document.createElement('span');
+      r.className = 'ripple';
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      r.style.width = r.style.height = size + 'px';
+      r.style.left = (e.clientX - rect.left - size/2) + 'px';
+      r.style.top  = (e.clientY - rect.top  - size/2) + 'px';
+      btn.appendChild(r);
+      setTimeout(()=> r.remove(), 650);
+    }
+
+    // Toast helper
+    function showToast(message, iconClass='fa-circle-check text-success', linkText='', linkHref='') {
+      const icon = qs('#toastIcon');
+      icon.className = 'fa-regular ' + iconClass;
+      qs('#toastMsg').textContent = message;
+      const link = qs('#toastLink');
+      if (linkText && linkHref) {
+        link.innerHTML = `<a href="${linkHref}" target="_blank" class="text-decoration-none">${linkText}</a>`;
+      } else {
+        link.textContent = '';
+      }
+      const t = new bootstrap.Toast(qs('#actionToast'), { delay: 3500 });
+      t.show();
+    }
+
+    // Attach behavior per account card
+    qsa(".account").forEach(el => {
+      const idx = el.dataset.idx;
+      const btn = qs(".circle-btn", el);
+      const statusE = qs(`#status-${idx}`);
+      const dot = qs(`#dot-${idx}`);
+
+      // add ripple
+      btn.addEventListener('click', addRipple);
+
+      function setStatus(stateText, state) {
+        statusE.textContent = stateText;
+        dot.classList.remove('running','success','error');
+        if (state) dot.classList.add(state);
+      }
+
+      function poll() {
+        fetch("/status")
+          .then(r => r.json())
+          .then(list => {
+            const s = list[idx];
+            if (s.status === "running") {
+              setTimeout(poll, 900);
+            } else {
+              btn.classList.remove("loading");
+              if (s.status === "success") {
+                setStatus('completed', 'success');
+                // Show toast; try to extract permalink if saved in message
+                const msg = s.message || '';
+                const match = msg.match(/Permalink:\s*(https?:\/\/\S+)/i);
+                const permalink = match ? match[1] : '';
+                showToast('Published successfully!', 'fa-circle-check text-success',
+                          permalink ? 'Open on Instagram' : '', permalink);
+              } else if (s.status === "error") {
+                setStatus('error', 'error');
+                showToast('Publish failed', 'fa-circle-xmark text-danger');
+              } else {
+                setStatus(s.status || 'done');
+              }
+            }
+          })
+          .catch(() => {
+            btn.classList.remove("loading");
+            setStatus('error', 'error');
+            showToast('Status check failed', 'fa-triangle-exclamation text-warning');
+          });
+      }
+
+      btn.addEventListener("click", () => {
+        btn.classList.add("loading");
+        setStatus('running…', 'running');
+        fetch(`/run/${idx}`, { method: "POST" })
+          .then(r => {
+            if (!r.ok) throw new Error("Start failed");
+            setTimeout(poll, 700);
+          })
+          .catch(err => {
+            btn.classList.remove("loading");
+            setStatus('error', 'error');
+            showToast('Start failed', 'fa-triangle-exclamation text-warning');
+            console.error(err);
+          });
+      });
+    });
+
+    // Preview & Select
+    let currentIdx = null;
+    let currentType = null;
+    const previewModal = qs('#previewModal');
+
+    // skeletons while loading preview
+    function renderSkeletons(container, count=8){
+      container.innerHTML = '';
+      for (let i=0;i<count;i++){
+        container.insertAdjacentHTML('beforeend', `
+          <div class="col-6 col-md-4 col-lg-3">
+            <div class="skeleton"></div>
+          </div>
+        `);
+      }
+    }
+
+    qsa(".account .preview-btn").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const acc = e.currentTarget.closest(".account");
+        currentIdx = acc.dataset.idx;
+        currentType = acc.dataset.type;
+
+        resetPreviewUI();
+
+        // show skeletons
+        if (currentType === 'carousel') {
+          qs('#imageSection').classList.remove('d-none');
+          renderSkeletons(qs('#imageGrid'));
+        } else {
+          qs('#videoSection').classList.remove('d-none');
+          renderSkeletons(qs('#videoGrid'), 6);
+        }
+
+        // fetch data
+        const res = await fetch(`/preview/${currentIdx}`);
+        const data = await res.json();
+
+        qs('#previewCaption').value = data.caption || '';
+
+        if (data.type === 'carousel') {
+          const box = qs('#imageGrid');
+          box.innerHTML = '';
+          (data.images || []).forEach((url, i) => {
+            box.insertAdjacentHTML('beforeend', `
+              <div class="col-6 col-md-4 col-lg-3" data-url="${url}">
+                <div class="card h-100 shadow-sm">
+                  <img src="${url}" class="card-img-top" alt="slide ${i+1}">
+                  <div class="card-body p-2">
+                    <div class="form-check">
+                      <input class="form-check-input include-check" type="checkbox" checked id="chk${i}">
+                      <label class="form-check-label" for="chk${i}">Include</label>
+                    </div>
+                    <small class="text-secondary d-block mt-1" style="word-break: break-all">
+                      ${url.split('/').pop()}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            `);
+          });
+          if (window.Sortable) new Sortable(box, { animation: 150 });
+          qs('#publishBtn').disabled = (data.images || []).length === 0;
+          qs('#imageSection').classList.remove('d-none');
+          qs('#videoSection').classList.add('d-none');
+
+        } else {
+          const grid = qs('#videoGrid');
+          grid.innerHTML = '';
+          (data.videos || []).forEach((url, i) => {
+            grid.insertAdjacentHTML('beforeend', `
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <video src="${url}" class="w-100" controls preload="metadata"></video>
+                  <div class="card-body p-2">
+                    <div class="form-check">
+                      <input class="form-check-input pick-video" name="pick" type="radio"
+                             value="${url}" id="vid${i}" ${i===0?'checked':''}>
+                      <label class="form-check-label" for="vid${i}">Use this</label>
+                    </div>
+                    <small class="text-secondary d-block mt-1" style="word-break: break-all">
+                      ${url.split('/').pop()}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            `);
+          });
+          qs('#publishBtn').disabled = (data.videos || []).length === 0;
+          qs('#videoSection').classList.remove('d-none');
+          qs('#imageSection').classList.add('d-none');
+        }
+
+        new bootstrap.Modal(previewModal).show();
+      });
+    });
+
+    function resetPreviewUI() {
+      const alert = qs('#previewAlert');
+      alert.className = 'alert d-none';
+      alert.textContent = '';
+      qs('#imageSection').classList.add('d-none');
+      qs('#videoSection').classList.add('d-none');
+      qs('#previewCaption').value = '';
+      qs('#publishBtn').disabled = true;
+    }
+
+    function showAlert(msg, level='info') {
+      const el = qs('#previewAlert');
+      el.className = 'alert alert-' + level;
+      el.textContent = msg;
+    }
+
+    qs('#publishBtn').addEventListener('click', async () => {
+      const caption = (qs('#previewCaption').value || '').trim();
+      let body;
+
+      if (currentType === 'carousel') {
+        const cards = qsa('#imageGrid > [data-url]');
+        const selected = cards
+          .filter(card => qs('.include-check', card).checked)
+          .map(card => card.getAttribute('data-url'));
+        if (selected.length === 0) return showAlert('Please select at least one slide.', 'warning');
+        body = { images: selected, caption };
+      } else {
+        const picked = qs('.pick-video:checked');
+        if (!picked) return showAlert('Please choose a video.', 'warning');
+        body = { video: picked.value, caption };
+      }
+
+      const res = await fetch(`/publish/${currentIdx}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.ok) return showAlert('Publish failed: ' + (data.error || 'Unknown error'), 'danger');
+
+      // Success — show toast with permalink if present
+      const result = data.result || {};
+      const link = result.permalink || '';
+      showToast('Published successfully!', 'fa-circle-check text-success',
+                link ? 'Open on Instagram' : '', link);
+
+      // Close modal shortly after
+      setTimeout(() => bootstrap.Modal.getInstance(previewModal).hide(), 700);
+    });
+  </script>
+</body>
+</html>
